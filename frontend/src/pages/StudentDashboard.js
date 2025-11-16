@@ -4,9 +4,12 @@ import axios from "axios";
 import { API } from "../App";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Home, BookOpen, FileText, Bell, LogOut } from "lucide-react";
+import { Home, BookOpen, FileText, Bell, LogOut, ClipboardCheck } from "lucide-react";
 import StudentHome from "../components/student/StudentHome";
 import StudentClassDetail from "../components/student/StudentClassDetail";
+import TakeTest from "../components/student/TakeTest";
+import TestResult from "../components/student/TestResult";
+import MyTestResults from "../components/student/MyTestResults";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
