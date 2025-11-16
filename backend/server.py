@@ -712,6 +712,39 @@ async def get_test_submissions(test_id: str, current_user: dict = Depends(get_cu
     
     return submissions
 
+@api_router.get("/my-test-results")
+async def get_my_test_results(current_user: dict = Depends(get_current_user)):
+    """Get all test results for the current student"""
+    if current_user["role"] != "student":
+        raise HTTPException(status_code=403, detail="Only students can view their test results")
+    
+    # Get all submissions for this student
+    submissions = await db.test_submissions.find(
+        {"student_id": current_user["id"]}, 
+        {"_id": 0}
+    ).sort("submitted_at", -1).to_list(1000)
+    
+    # Get test details for each submission
+    results = []
+    for sub in submissions:
+        test = await db.tests.find_one({"id": sub["test_id"]}, {"_id": 0})
+        if test:
+            # Get class details
+            class_obj = await db.classes.find_one({"id": test["class_id"]}, {"_id": 0})
+            
+            if isinstance(sub.get('submitted_at'), str):
+                sub['submitted_at'] = datetime.fromisoformat(sub['submitted_at'])
+            if isinstance(test.get('created_at'), str):
+                test['created_at'] = datetime.fromisoformat(test['created_at'])
+            
+            results.append({
+                "submission": sub,
+                "test": test,
+                "class_name": class_obj["name"] if class_obj else "Unknown Class"
+            })
+    
+    return results
+
 # ==== INIT ROUTE ====
 
 @api_router.get("/")
