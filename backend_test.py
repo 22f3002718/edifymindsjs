@@ -446,6 +446,7 @@ def test_my_test_results_endpoint():
     # Test as student (should work)
     response = make_request("GET", "/my-test-results", token=student_token)
     
+    student_test_passed = False
     if response and response.status_code == 200:
         results = response.json()
         
@@ -458,28 +459,29 @@ def test_my_test_results_endpoint():
                 
                 if has_all_keys:
                     print_test_result("My Test Results - Student Access", True, f"Retrieved {len(results)} test results with proper structure")
+                    student_test_passed = True
                 else:
                     print_test_result("My Test Results - Student Access", False, f"Missing required keys in result structure")
-                    return False
             else:
                 print_test_result("My Test Results - Student Access", True, "Empty results array (no submissions yet)")
+                student_test_passed = True
         else:
             print_test_result("My Test Results - Student Access", False, "Response is not an array")
-            return False
     else:
         error_msg = response.json().get("detail", "Unknown error") if response else "No response"
         print_test_result("My Test Results - Student Access", False, f"Status: {response.status_code if response else 'None'}, Error: {error_msg}")
-        return False
     
     # Test as teacher (should fail)
     response = make_request("GET", "/my-test-results", token=teacher_token)
     
+    teacher_test_passed = False
     if response and response.status_code == 403:
         print_test_result("My Test Results - Teacher Access Denied", True, "Correctly denied access to teachers")
-        return True
+        teacher_test_passed = True
     else:
         print_test_result("My Test Results - Teacher Access Denied", False, f"Should deny teacher access, got status: {response.status_code if response else 'None'}")
-        return False
+    
+    return student_test_passed and teacher_test_passed
 
 def test_authentication_required():
     """Test that endpoints require authentication"""
