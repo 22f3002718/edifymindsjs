@@ -65,6 +65,18 @@ const StudentDashboard = () => {
                 Home
               </Button>
             </Link>
+            <Link to="/student/test-results">
+              <Button 
+                variant="ghost" 
+                className={`text-white hover:bg-white/20 ${
+                  location.pathname === '/student/test-results' ? 'bg-white/30' : ''
+                }`}
+                data-testid="student-nav-test-results"
+              >
+                <ClipboardCheck className="mr-2 h-5 w-5" />
+                Test Results
+              </Button>
+            </Link>
             <Button 
               variant="ghost" 
               className="text-white hover:bg-white/20"
