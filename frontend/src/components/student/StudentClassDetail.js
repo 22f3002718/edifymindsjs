@@ -24,16 +24,18 @@ const StudentClassDetail = () => {
 
   const fetchClassData = async () => {
     try {
-      const [classRes, hwRes, noticeRes, resourceRes] = await Promise.all([
+      const [classRes, hwRes, noticeRes, resourceRes, testsRes] = await Promise.all([
         axios.get(`${API}/classes/${classId}`),
         axios.get(`${API}/classes/${classId}/homework`),
         axios.get(`${API}/classes/${classId}/notices`),
-        axios.get(`${API}/classes/${classId}/resources`)
+        axios.get(`${API}/classes/${classId}/resources`),
+        axios.get(`${API}/classes/${classId}/tests`)
       ]);
       setClassData(classRes.data);
       setHomework(hwRes.data);
       setNotices(noticeRes.data);
       setResources(resourceRes.data);
+      setTests(testsRes.data);
     } catch (error) {
       toast.error("Failed to load class information");
     } finally {
