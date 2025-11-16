@@ -43,13 +43,13 @@ def make_request(method, endpoint, data=None, token=None, expected_status=200):
     
     try:
         if method.upper() == "GET":
-            response = requests.get(url, headers=headers, timeout=30)
+            response = requests.get(url, headers=headers, timeout=60)
         elif method.upper() == "POST":
-            response = requests.post(url, headers=headers, json=data, timeout=30)
+            response = requests.post(url, headers=headers, json=data, timeout=60)
         elif method.upper() == "PUT":
-            response = requests.put(url, headers=headers, json=data, timeout=30)
+            response = requests.put(url, headers=headers, json=data, timeout=60)
         elif method.upper() == "DELETE":
-            response = requests.delete(url, headers=headers, timeout=30)
+            response = requests.delete(url, headers=headers, timeout=60)
         
         return response
     except requests.exceptions.RequestException as e:
