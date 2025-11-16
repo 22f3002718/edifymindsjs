@@ -95,6 +95,9 @@ const StudentDashboard = () => {
         <Routes>
           <Route path="/dashboard" element={<StudentHome />} />
           <Route path="/class/:classId" element={<StudentClassDetail />} />
+          <Route path="/test/:testId" element={<TakeTest />} />
+          <Route path="/test/:testId/result" element={<TestResult />} />
+          <Route path="/test-results" element={<MyTestResults />} />
         </Routes>
       </div>
     </div>
