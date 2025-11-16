@@ -497,12 +497,28 @@ def test_authentication_required():
         print_test_result("Authentication Required", False, f"Should require auth, got status: {response.status_code if response else 'None'}")
         return False
 
+def test_backend_connectivity():
+    """Test basic backend connectivity"""
+    print("🌐 Testing Backend Connectivity...")
+    
+    response = make_request("GET", "/")
+    
+    if response and response.status_code == 200:
+        print_test_result("Backend Connectivity", True, "Backend is accessible")
+        return True
+    else:
+        print_test_result("Backend Connectivity", False, f"Backend not accessible, status: {response.status_code if response else 'None'}")
+        return False
+
 def run_all_tests():
     """Run all backend tests"""
     print("🚀 Starting Comprehensive Backend API Testing")
     print("=" * 60)
     
     test_results = []
+    
+    # Connectivity Test
+    test_results.append(("Backend Connectivity", test_backend_connectivity()))
     
     # Authentication Tests
     test_results.append(("Teacher Login", test_teacher_login()))
