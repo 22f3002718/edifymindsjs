@@ -199,6 +199,57 @@ const StudentClassDetail = () => {
           </CardContent>
         </Card>
 
+        {/* Tests */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center text-2xl" style={{ color: '#7B2CBF' }}>
+              <FileQuestion className="mr-2 h-6 w-6" />
+              Tests & Assessments
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {tests.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No tests available yet</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {tests.map((test) => (
+                  <Card 
+                    key={test.id} 
+                    className="card-hover"
+                    data-testid={`student-test-${test.id}`}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-xl mb-2">{test.title}</h4>
+                        <p className="text-gray-600 text-sm mb-3">{test.description}</p>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {test.duration_minutes} minutes
+                          </Badge>
+                          <Badge variant="outline">
+                            <FileQuestion className="h-3 w-3 mr-1" />
+                            {test.questions.length} questions
+                          </Badge>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => navigate(`/student/test/${test.id}`)}
+                        className="w-full text-white"
+                        style={{ background: 'linear-gradient(135deg, #7B2CBF 0%, #9333ea 100%)' }}
+                        data-testid={`take-test-button-${test.id}`}
+                      >
+                        <FileQuestion className="mr-2 h-4 w-4" />
+                        Take Test
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Resources */}
         <Card className="lg:col-span-2">
           <CardHeader>
