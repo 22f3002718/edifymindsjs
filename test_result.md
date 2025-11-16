@@ -185,11 +185,14 @@ backend:
     file: "/app/backend/server.py (/api/my-test-results GET)"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added new endpoint to fetch all test results for current student with test and class details."
+      - working: true
+        agent: "testing"
+        comment: "TESTED: GET /api/my-test-results endpoint works correctly. Returns array of test results with proper structure (submission, test, class_name). Correctly requires student authentication and denies teacher access with 403. Endpoint tested with real data and returns expected results."
 
 frontend:
   - task: "Test creation dialog for teachers"
