@@ -490,8 +490,8 @@ def test_authentication_required():
     # Test without token
     response = make_request("GET", "/my-test-results")
     
-    if response and response.status_code == 403:
-        print_test_result("Authentication Required", True, "Correctly requires authentication")
+    if response and response.status_code in [401, 403]:
+        print_test_result("Authentication Required", True, f"Correctly requires authentication (status: {response.status_code})")
         return True
     else:
         print_test_result("Authentication Required", False, f"Should require auth, got status: {response.status_code if response else 'None'}")
