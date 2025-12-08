@@ -547,7 +547,7 @@ async def delete_homework(homework_id: str, current_user: dict = Depends(get_cur
         raise HTTPException(status_code=404, detail="Homework not found")
     
     # Delete from database
-    result = await db.homework.delete_one({"id": homework_id})
+    await db.homework.delete_one({"id": homework_id})
     
     # If it's an uploaded file (starts with /uploads/), delete the physical file
     if homework.get('attachment_link', '').startswith('/uploads/'):
