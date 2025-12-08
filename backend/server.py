@@ -299,10 +299,13 @@ async def register(request: Request, user_input: UserCreate):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Hash password in threadpool to avoid blocking the event loop
+    password_hash = await run_in_threadpool(get_password_hash, user_input.password)
+    
     # Create user with sanitized data
     user = User(
         email=sanitized_email,
-        password_hash=get_password_hash(user_input.password),
+        password_hash=password_hash,
         name=sanitized_name,
         role=user_input.role,
         parent_contact=parent_contact
