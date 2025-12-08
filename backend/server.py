@@ -367,11 +367,27 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 # ==== CLASS ROUTES ====
 
 @api_router.post("/classes", response_model=Class)
-async def create_class(class_input: ClassCreate, current_user: dict = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def create_class(request: Request, class_input: ClassCreate, current_user: dict = Depends(get_current_user)):
+    """Create a class with input sanitization"""
     if current_user["role"] != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can create classes")
     
-    class_obj = Class(**class_input.model_dump(), teacher_id=current_user["id"])
+    # Sanitize inputs
+    sanitized_data = class_input.model_dump()
+    sanitized_data['name'] = sanitize_string(sanitized_data['name'], max_length=200)
+    sanitized_data['description'] = sanitize_string(sanitized_data['description'], max_length=1000)
+    sanitized_data['grade_level'] = sanitize_string(sanitized_data['grade_level'], max_length=50)
+    sanitized_data['time'] = sanitize_string(sanitized_data['time'], max_length=50)
+    sanitized_data['start_date'] = sanitize_string(sanitized_data['start_date'], max_length=50)
+    if sanitized_data.get('end_date'):
+        sanitized_data['end_date'] = sanitize_string(sanitized_data['end_date'], max_length=50)
+    if sanitized_data.get('zoom_link'):
+        sanitized_data['zoom_link'] = sanitize_url(sanitized_data['zoom_link'])
+    if sanitized_data.get('drive_folder_id'):
+        sanitized_data['drive_folder_id'] = sanitize_string(sanitized_data['drive_folder_id'], max_length=200)
+    
+    class_obj = Class(**sanitized_data, teacher_id=current_user["id"])
     doc = class_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.classes.insert_one(doc)
