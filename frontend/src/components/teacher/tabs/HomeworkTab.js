@@ -55,10 +55,19 @@ const HomeworkTab = ({ classId }) => {
       toast.success("Homework created successfully");
       fetchHomework();
       setFormData({ title: "", description: "", due_date: "", attachment_link: "" });
+      setUploadMode("link");
       setDialogOpen(false);
     } catch (error) {
       toast.error("Failed to create homework");
     }
+  };
+
+  const handleFileUploadSuccess = (uploadData) => {
+    setFormData({
+      ...formData,
+      attachment_link: uploadData.url
+    });
+    toast.success("File uploaded! Complete the form and submit.");
   };
 
   const handleDelete = async (homeworkId) => {
