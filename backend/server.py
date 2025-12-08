@@ -509,9 +509,24 @@ async def delete_resource(resource_id: str, current_user: dict = Depends(get_cur
     if current_user["role"] != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can delete resources")
     
-    result = await db.resources.delete_one({"id": resource_id})
-    if result.deleted_count == 0:
+    # Get resource to check if it's an uploaded file
+    resource = await db.resources.find_one({"id": resource_id}, {"_id": 0})
+    if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
+    
+    # Delete from database
+    result = await db.resources.delete_one({"id": resource_id})
+    
+    # If it's an uploaded file (starts with /uploads/), delete the physical file
+    if resource.get('drive_link', '').startswith('/uploads/'):
+        filename = resource['drive_link'].replace('/uploads/', '')
+        file_path = UPLOAD_DIR / filename
+        try:
+            if file_path.exists():
+                file_path.unlink()
+                logger.info(f"Deleted uploaded file: {filename}")
+        except Exception as e:
+            logger.error(f"Failed to delete file {filename}: {str(e)}")
     
     return {"message": "Resource deleted successfully"}
 
