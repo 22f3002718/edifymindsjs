@@ -107,14 +107,62 @@ const ResourcesTab = ({ classId }) => {
               Add Resource
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add Learning Resource</DialogTitle>
               <DialogDescription>
-                Add Google Drive files or folders for students
+                Upload a file or link to Google Drive resources
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
+              <Tabs value={uploadMode} onValueChange={setUploadMode} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="upload" className="flex items-center gap-2">
+                    <UploadIcon className="h-4 w-4" />
+                    Upload File
+                  </TabsTrigger>
+                  <TabsTrigger value="link" className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4" />
+                    Google Drive Link
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="upload" className="space-y-4 mt-4">
+                  <FileUpload onUploadSuccess={handleFileUploadSuccess} />
+                  {formData.drive_link && formData.drive_link.startsWith('/uploads/') && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                      <p className="text-sm text-green-800">✓ File uploaded successfully</p>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="link" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="resource-link">Google Drive Link *</Label>
+                    <Input
+                      id="resource-link"
+                      data-testid="resource-link-input"
+                      value={uploadMode === "link" ? formData.drive_link : ""}
+                      onChange={(e) => setFormData({ ...formData, drive_link: e.target.value })}
+                      required={uploadMode === "link"}
+                      placeholder="https://drive.google.com/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="resource-type">Type *</Label>
+                    <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+                      <SelectTrigger data-testid="resource-type-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="file">File</SelectItem>
+                        <SelectItem value="folder">Folder</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
               <div className="space-y-2">
                 <Label htmlFor="resource-name">Resource Name *</Label>
                 <Input
@@ -126,29 +174,7 @@ const ResourcesTab = ({ classId }) => {
                   placeholder="e.g., Chapter 5 Notes"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="resource-type">Type *</Label>
-                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                  <SelectTrigger data-testid="resource-type-select">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="file">File</SelectItem>
-                    <SelectItem value="folder">Folder</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="resource-link">Google Drive Link *</Label>
-                <Input
-                  id="resource-link"
-                  data-testid="resource-link-input"
-                  value={formData.drive_link}
-                  onChange={(e) => setFormData({ ...formData, drive_link: e.target.value })}
-                  required
-                  placeholder="https://drive.google.com/..."
-                />
-              </div>
+              
               <Button
                 type="submit"
                 className="w-full text-white"
