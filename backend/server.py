@@ -1090,12 +1090,57 @@ async def startup_db():
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Uploads directory ready at: {UPLOAD_DIR}")
     
+    # Create database indexes for performance optimization
+    logger.info("Creating database indexes...")
+    try:
+        # Users collection indexes
+        await db.users.create_index("email", unique=True)
+        await db.users.create_index("id", unique=True)
+        
+        # Classes collection indexes
+        await db.classes.create_index("id", unique=True)
+        await db.classes.create_index("teacher_id")
+        
+        # Enrollments collection indexes
+        await db.enrollments.create_index("id", unique=True)
+        await db.enrollments.create_index("student_id")
+        await db.enrollments.create_index("class_id")
+        await db.enrollments.create_index([("student_id", 1), ("class_id", 1)])
+        
+        # Homework collection indexes
+        await db.homework.create_index("id", unique=True)
+        await db.homework.create_index("class_id")
+        
+        # Notices collection indexes
+        await db.notices.create_index("id", unique=True)
+        await db.notices.create_index("class_id")
+        
+        # Resources collection indexes
+        await db.resources.create_index("id", unique=True)
+        await db.resources.create_index("class_id")
+        
+        # Tests collection indexes
+        await db.tests.create_index("id", unique=True)
+        await db.tests.create_index("class_id")
+        
+        # Test submissions collection indexes
+        await db.test_submissions.create_index("id", unique=True)
+        await db.test_submissions.create_index("test_id")
+        await db.test_submissions.create_index("student_id")
+        await db.test_submissions.create_index([("test_id", 1), ("student_id", 1)])
+        
+        logger.info("Database indexes created successfully")
+    except Exception as e:
+        logger.error(f"Error creating indexes: {e}")
+    
     # Initialize default teacher if doesn't exist
     existing_teacher = await db.users.find_one({"email": "edify@gmail.com"}, {"_id": 0})
     if not existing_teacher:
+        # Use threadpool for password hashing to avoid blocking
+        password_hash = await run_in_threadpool(get_password_hash, "edify123")
         teacher = User(
             email="edify@gmail.com",
-            password_hash=get_password_hash("edify123"),
+            password_hash=password_hash,
             name="EdifyMinds Teacher",
             role="teacher"
         )
