@@ -1175,7 +1175,7 @@ async def update_user(
 @api_router.post("/admin/users/{user_id}/reset-password")
 async def reset_user_password(
     user_id: str,
-    new_password: str,
+    request_body: PasswordResetRequest,
     current_user: dict = Depends(get_admin_user)
 ):
     """Reset a user's password (admin only)"""
@@ -1191,11 +1191,11 @@ async def reset_user_password(
         raise HTTPException(status_code=404, detail="User not found")
     
     # Validate password length
-    if len(new_password) < 6:
+    if len(request_body.new_password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
     
     # Hash the new password using threadpool
-    password_hash = await run_in_threadpool(get_password_hash, new_password)
+    password_hash = await run_in_threadpool(get_password_hash, request_body.new_password)
     
     # Update password
     await db.users.update_one({"id": user_id}, {"$set": {"password_hash": password_hash}})
