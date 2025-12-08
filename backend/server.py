@@ -499,11 +499,27 @@ async def remove_student(student_id: str, class_id: str, current_user: dict = De
 # ==== HOMEWORK ROUTES ====
 
 @api_router.post("/homework", response_model=Homework)
-async def create_homework(homework_input: HomeworkCreate, current_user: dict = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def create_homework(request: Request, homework_input: HomeworkCreate, current_user: dict = Depends(get_current_user)):
+    """Create homework with input sanitization"""
     if current_user["role"] != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can create homework")
     
-    homework = Homework(**homework_input.model_dump())
+    # Sanitize inputs
+    sanitized_data = homework_input.model_dump()
+    sanitized_data['title'] = sanitize_string(sanitized_data['title'], max_length=200)
+    sanitized_data['description'] = sanitize_string(sanitized_data['description'], max_length=2000)
+    sanitized_data['due_date'] = sanitize_string(sanitized_data['due_date'], max_length=50)
+    if sanitized_data.get('attachment_link'):
+        sanitized_data['attachment_link'] = sanitize_url(sanitized_data['attachment_link'])
+    
+    # Validate class_id
+    try:
+        validate_object_id(sanitized_data['class_id'], "class_id")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    homework = Homework(**sanitized_data)
     doc = homework.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.homework.insert_one(doc)
