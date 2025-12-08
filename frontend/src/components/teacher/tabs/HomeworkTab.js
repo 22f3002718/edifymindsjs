@@ -207,16 +207,23 @@ const HomeworkTab = ({ classId }) => {
                     </div>
                     <p className="text-gray-600 mt-2">{hw.description}</p>
                     {hw.attachment_link && (
-                      <a
-                        href={hw.attachment_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-purple-600 hover:text-purple-700 mt-2 text-sm"
-                        data-testid={`homework-link-${hw.id}`}
-                      >
-                        <LinkIcon className="h-4 w-4 mr-1" />
-                        View Attachment
-                      </a>
+                      <div className="flex items-center gap-2 mt-2">
+                        <a
+                          href={hw.attachment_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-purple-600 hover:text-purple-700 text-sm"
+                          data-testid={`homework-link-${hw.id}`}
+                        >
+                          <LinkIcon className="h-4 w-4 mr-1" />
+                          {hw.attachment_link.startsWith('/uploads/') ? 'Download Attachment' : 'View Attachment'}
+                        </a>
+                        {hw.attachment_link.startsWith('/uploads/') && (
+                          <Badge variant="outline" className="text-xs">
+                            Uploaded
+                          </Badge>
+                        )}
+                      </div>
                     )}
                   </div>
                   <Button
