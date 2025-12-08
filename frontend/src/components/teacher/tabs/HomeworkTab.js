@@ -137,16 +137,42 @@ const HomeworkTab = ({ classId }) => {
                   required
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="hw-link">Attachment Link (Optional)</Label>
-                <Input
-                  id="hw-link"
-                  data-testid="homework-link-input"
-                  value={formData.attachment_link}
-                  onChange={(e) => setFormData({ ...formData, attachment_link: e.target.value })}
-                  placeholder="Google Drive link or other resource"
-                />
+                <Label>Attachment (Optional)</Label>
+                <Tabs value={uploadMode} onValueChange={setUploadMode} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload" className="flex items-center gap-2">
+                      <UploadIcon className="h-4 w-4" />
+                      Upload File
+                    </TabsTrigger>
+                    <TabsTrigger value="link" className="flex items-center gap-2">
+                      <LinkIcon className="h-4 w-4" />
+                      Add Link
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="space-y-3 mt-3">
+                    <FileUpload onUploadSuccess={handleFileUploadSuccess} />
+                    {formData.attachment_link && formData.attachment_link.startsWith('/uploads/') && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-800">✓ File uploaded successfully</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="link" className="mt-3">
+                    <Input
+                      id="hw-link"
+                      data-testid="homework-link-input"
+                      value={uploadMode === "link" ? formData.attachment_link : ""}
+                      onChange={(e) => setFormData({ ...formData, attachment_link: e.target.value })}
+                      placeholder="Google Drive link or other resource"
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
+
               <Button
                 type="submit"
                 className="w-full text-white"
