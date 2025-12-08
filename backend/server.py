@@ -693,13 +693,26 @@ def parse_questions(text: str) -> List[TestQuestion]:
     return questions
 
 @api_router.post("/tests", response_model=Test)
-async def create_test(test_input: TestCreate, current_user: dict = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def create_test(request: Request, test_input: TestCreate, current_user: dict = Depends(get_current_user)):
+    """Create a test with input sanitization"""
     if current_user["role"] != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can create tests")
     
-    # Parse questions from text
+    # Sanitize inputs
+    sanitized_title = sanitize_string(test_input.title, max_length=200)
+    sanitized_description = sanitize_string(test_input.description, max_length=1000)
+    sanitized_questions_text = sanitize_test_questions(test_input.questions_text)
+    
+    # Validate class_id format
     try:
-        questions = parse_questions(test_input.questions_text)
+        validate_object_id(test_input.class_id, "class_id")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    # Parse questions from sanitized text
+    try:
+        questions = parse_questions(sanitized_questions_text)
         if not questions:
             raise HTTPException(status_code=400, detail="No valid questions found in the text")
     except Exception as e:
@@ -707,8 +720,8 @@ async def create_test(test_input: TestCreate, current_user: dict = Depends(get_c
     
     test = Test(
         class_id=test_input.class_id,
-        title=test_input.title,
-        description=test_input.description,
+        title=sanitized_title,
+        description=sanitized_description,
         duration_minutes=test_input.duration_minutes,
         questions=[q.model_dump() for q in questions],
         created_by=current_user["id"]
