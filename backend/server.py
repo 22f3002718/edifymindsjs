@@ -1117,6 +1117,8 @@ async def startup_db():
         # Users collection indexes
         await db.users.create_index("email", unique=True)
         await db.users.create_index("id", unique=True)
+        await db.users.create_index("role")
+        await db.users.create_index("name")
         
         # Classes collection indexes
         await db.classes.create_index("id", unique=True)
