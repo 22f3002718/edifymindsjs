@@ -659,7 +659,7 @@ async def delete_resource(resource_id: str, current_user: dict = Depends(get_cur
         raise HTTPException(status_code=404, detail="Resource not found")
     
     # Delete from database
-    result = await db.resources.delete_one({"id": resource_id})
+    await db.resources.delete_one({"id": resource_id})
     
     # If it's an uploaded file (starts with /uploads/), delete the physical file
     if resource.get('drive_link', '').startswith('/uploads/'):
