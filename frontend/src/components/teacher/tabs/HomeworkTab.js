@@ -74,7 +74,7 @@ const HomeworkTab = ({ classId }) => {
         <h3 className="text-2xl font-semibold">Homework Assignments</h3>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button 
+            <Button
               className="text-white"
               style={{ background: 'linear-gradient(135deg, #7B2CBF 0%, #9333ea 100%)' }}
               data-testid="create-homework-button"
@@ -135,7 +135,7 @@ const HomeworkTab = ({ classId }) => {
                   placeholder="Google Drive link or other resource"
                 />
               </div>
-              <Button 
+              <Button
                 type="submit"
                 className="w-full text-white"
                 style={{ background: 'linear-gradient(135deg, #7B2CBF 0%, #9333ea 100%)' }}
@@ -169,9 +169,9 @@ const HomeworkTab = ({ classId }) => {
                     </div>
                     <p className="text-gray-600 mt-2">{hw.description}</p>
                     {hw.attachment_link && (
-                      <a 
-                        href={hw.attachment_link} 
-                        target="_blank" 
+                      <a
+                        href={hw.attachment_link}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-purple-600 hover:text-purple-700 mt-2 text-sm"
                         data-testid={`homework-link-${hw.id}`}

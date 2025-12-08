@@ -78,7 +78,7 @@ const ResourcesTab = ({ classId }) => {
         <h3 className="text-2xl font-semibold">Learning Resources</h3>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button 
+            <Button
               className="text-white"
               style={{ background: 'linear-gradient(135deg, #7B2CBF 0%, #9333ea 100%)' }}
               data-testid="add-resource-button"
@@ -129,7 +129,7 @@ const ResourcesTab = ({ classId }) => {
                   placeholder="https://drive.google.com/..."
                 />
               </div>
-              <Button 
+              <Button
                 type="submit"
                 className="w-full text-white"
                 style={{ background: 'linear-gradient(135deg, #7B2CBF 0%, #9333ea 100%)' }}
@@ -180,9 +180,9 @@ const ResourcesTab = ({ classId }) => {
                 </div>
               </CardHeader>
               <CardContent>
-                <a 
-                  href={resource.drive_link} 
-                  target="_blank" 
+                <a
+                  href={resource.drive_link}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-purple-600 hover:text-purple-700 text-sm font-medium"
                   data-testid={`open-resource-${resource.id}`}
