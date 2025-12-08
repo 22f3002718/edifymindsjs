@@ -234,8 +234,13 @@ const ResourcesTab = ({ classId }) => {
                   data-testid={`open-resource-${resource.id}`}
                 >
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  Open in Drive
+                  {resource.drive_link.startsWith('/uploads/') ? 'Download File' : 'Open in Drive'}
                 </a>
+                {resource.drive_link.startsWith('/uploads/') && (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    Uploaded
+                  </Badge>
+                )}
               </CardContent>
             </Card>
           ))}
