@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, FileText, Link as LinkIcon, Calendar } from "lucide-react";
+import { Plus, Trash2, FileText, Link as LinkIcon, Calendar, Upload as UploadIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,11 +17,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FileUpload from "../../common/FileUpload";
 import { format } from "date-fns";
 
 const HomeworkTab = ({ classId }) => {
   const [homework, setHomework] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadMode, setUploadMode] = useState("link");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
