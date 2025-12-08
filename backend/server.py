@@ -1,9 +1,12 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
 import logging
 from pathlib import Path
@@ -14,6 +17,15 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from passlib.context import CryptContext
 import shutil
+
+# Import security utilities
+from security_utils import (
+    sanitize_string, sanitize_email, sanitize_name, sanitize_url,
+    sanitize_mongo_query, validate_object_id, sanitize_test_questions
+)
+from file_security import (
+    validate_uploaded_file, log_security_event
+)
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
