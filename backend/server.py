@@ -322,10 +322,35 @@ async def register(request: Request, user_input: UserCreate):
     )
 
 @api_router.post("/auth/login", response_model=Token)
-async def login(user_input: UserLogin):
-    user = await db.users.find_one({"email": user_input.email}, {"_id": 0})
+@limiter.limit("5/minute")
+async def login(request: Request, user_input: UserLogin):
+    """Login with rate limiting and input sanitization"""
+    
+    # Sanitize email input
+    try:
+        sanitized_email = sanitize_email(user_input.email)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    # Query with sanitized input
+    user = await db.users.find_one(
+        sanitize_mongo_query({"email": sanitized_email}), 
+        {"_id": 0}
+    )
+    
     if not user or not verify_password(user_input.password, user["password_hash"]):
+        # Log failed login attempt
+        log_security_event('failed_login', {
+            'email': sanitized_email,
+            'ip': get_remote_address(request)
+        })
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Log successful login
+    log_security_event('successful_login', {
+        'user_id': user["id"],
+        'email': sanitized_email
+    })
     
     access_token = create_access_token(data={"sub": user["id"], "role": user["role"]})
     
