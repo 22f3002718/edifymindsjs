@@ -51,6 +51,13 @@ const ResourcesTab = ({ classId }) => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    
+    // Validate that we have a link/URL
+    if (!formData.drive_link) {
+      toast.error(uploadMode === "upload" ? "Please upload a file first" : "Please provide a Google Drive link");
+      return;
+    }
+    
     try {
       await axios.post(`${API}/resources`, {
         ...formData,
@@ -59,10 +66,20 @@ const ResourcesTab = ({ classId }) => {
       toast.success("Resource added successfully");
       fetchResources();
       setFormData({ name: "", type: "file", drive_link: "" });
+      setUploadMode("link");
       setDialogOpen(false);
     } catch (error) {
       toast.error("Failed to add resource");
     }
+  };
+
+  const handleFileUploadSuccess = (uploadData) => {
+    setFormData({
+      ...formData,
+      drive_link: uploadData.url,
+      name: formData.name || uploadData.filename
+    });
+    toast.success("File uploaded! Now provide a resource name and submit.");
   };
 
   const handleDelete = async (resourceId) => {
