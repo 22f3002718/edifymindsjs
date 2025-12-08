@@ -786,6 +786,10 @@ async def shutdown_db_client():
 
 @app.on_event("startup")
 async def startup_db():
+    # Create uploads directory if it doesn't exist
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Uploads directory ready at: {UPLOAD_DIR}")
+    
     # Initialize default teacher if doesn't exist
     existing_teacher = await db.users.find_one({"email": "edify@gmail.com"}, {"_id": 0})
     if not existing_teacher:
@@ -799,3 +803,6 @@ async def startup_db():
         doc['created_at'] = doc['created_at'].isoformat()
         await db.users.insert_one(doc)
         logger.info("Default teacher account created: edify@gmail.com / edify123")
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
