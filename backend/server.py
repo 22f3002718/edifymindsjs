@@ -282,8 +282,8 @@ async def register(request: Request, user_input: UserCreate):
         sanitized_name = sanitize_name(user_input.name)
         
         # Validate role
-        if user_input.role not in ['teacher', 'student']:
-            raise HTTPException(status_code=400, detail="Invalid role. Must be 'teacher' or 'student'")
+        if user_input.role not in ['teacher', 'student', 'admin']:
+            raise HTTPException(status_code=400, detail="Invalid role. Must be 'teacher', 'student', or 'admin'")
         
         # Sanitize optional parent contact
         parent_contact = sanitize_string(user_input.parent_contact) if user_input.parent_contact else None
