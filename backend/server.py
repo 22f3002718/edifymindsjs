@@ -439,9 +439,24 @@ async def delete_homework(homework_id: str, current_user: dict = Depends(get_cur
     if current_user["role"] != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can delete homework")
     
-    result = await db.homework.delete_one({"id": homework_id})
-    if result.deleted_count == 0:
+    # Get homework to check if it has an uploaded file
+    homework = await db.homework.find_one({"id": homework_id}, {"_id": 0})
+    if not homework:
         raise HTTPException(status_code=404, detail="Homework not found")
+    
+    # Delete from database
+    result = await db.homework.delete_one({"id": homework_id})
+    
+    # If it's an uploaded file (starts with /uploads/), delete the physical file
+    if homework.get('attachment_link', '').startswith('/uploads/'):
+        filename = homework['attachment_link'].replace('/uploads/', '')
+        file_path = UPLOAD_DIR / filename
+        try:
+            if file_path.exists():
+                file_path.unlink()
+                logger.info(f"Deleted uploaded file: {filename}")
+        except Exception as e:
+            logger.error(f"Failed to delete file {filename}: {str(e)}")
     
     return {"message": "Homework deleted successfully"}
 
