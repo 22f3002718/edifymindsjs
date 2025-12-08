@@ -613,11 +613,25 @@ async def delete_notice(notice_id: str, current_user: dict = Depends(get_current
 # ==== RESOURCE ROUTES ====
 
 @api_router.post("/resources", response_model=Resource)
-async def create_resource(resource_input: ResourceCreate, current_user: dict = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def create_resource(request: Request, resource_input: ResourceCreate, current_user: dict = Depends(get_current_user)):
+    """Create resource with input sanitization"""
     if current_user["role"] != "teacher":
         raise HTTPException(status_code=403, detail="Only teachers can add resources")
     
-    resource = Resource(**resource_input.model_dump())
+    # Sanitize inputs
+    sanitized_data = resource_input.model_dump()
+    sanitized_data['name'] = sanitize_string(sanitized_data['name'], max_length=200)
+    sanitized_data['type'] = sanitize_string(sanitized_data['type'], max_length=50)
+    sanitized_data['drive_link'] = sanitize_url(sanitized_data['drive_link'])
+    
+    # Validate class_id
+    try:
+        validate_object_id(sanitized_data['class_id'], "class_id")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    resource = Resource(**sanitized_data)
     doc = resource.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.resources.insert_one(doc)
