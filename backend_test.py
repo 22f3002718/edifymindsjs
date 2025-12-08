@@ -1,21 +1,30 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend API Testing for EdifyMinds Junior Test Module
-Tests all backend endpoints with focus on the new test features
+Comprehensive Backend API Testing for EdifyMinds Junior Security Features
+Tests all backend endpoints with focus on security enhancements:
+- Rate limiting
+- Input sanitization and XSS/NoSQL injection protection
+- MIME type validation
+- File upload security pipeline
+- Security logging
 """
 
 import requests
 import json
 import time
+import io
+import tempfile
+import os
 from datetime import datetime
+from pathlib import Path
 
 # Configuration
 BASE_URL = "https://fortify-uploads.preview.emergentagent.com/api"
 
-# Test credentials
-TEACHER_EMAIL = "edify@gmail.com"
-TEACHER_PASSWORD = "edify123"
-STUDENT_EMAIL = "test.student@example.com"
+# Test credentials - using realistic data as requested
+TEACHER_EMAIL = "teacher@test.com"
+TEACHER_PASSWORD = "teacher123"
+STUDENT_EMAIL = "student@test.com"
 STUDENT_PASSWORD = "student123"
 
 # Global variables for tokens and IDs
