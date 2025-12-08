@@ -756,6 +756,76 @@ async def get_my_test_results(current_user: dict = Depends(get_current_user)):
     
     return results
 
+# ==== FILE UPLOAD ROUTE ====
+
+@api_router.post("/upload")
+async def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """Upload a file (max 5MB) for resources or homework"""
+    
+    # Check file extension
+    file_ext = Path(file.filename).suffix.lower()
+    
+    # Security check - reject dangerous files
+    if file_ext in DANGEROUS_EXTENSIONS:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File type '{file_ext}' is not allowed for security reasons"
+        )
+    
+    # Check if extension is allowed
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type '{file_ext}' is not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+    
+    # Validate file size by reading in chunks
+    file_size = 0
+    chunk_size = 1024 * 1024  # 1MB chunks
+    
+    # Read file to check size
+    temp_content = []
+    try:
+        while True:
+            chunk = await file.read(chunk_size)
+            if not chunk:
+                break
+            file_size += len(chunk)
+            temp_content.append(chunk)
+            
+            if file_size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"File size exceeds maximum allowed size of 5MB. Your file is {file_size / (1024*1024):.2f}MB"
+                )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
+    
+    # Generate unique filename
+    unique_filename = f"{uuid.uuid4()}{file_ext}"
+    file_path = UPLOAD_DIR / unique_filename
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as f:
+            for chunk in temp_content:
+                f.write(chunk)
+        
+        logger.info(f"File uploaded: {unique_filename} by user {current_user['id']}")
+        
+        return {
+            "url": f"/uploads/{unique_filename}",
+            "filename": file.filename,
+            "size": file_size
+        }
+    except Exception as e:
+        # Clean up if save fails
+        if file_path.exists():
+            file_path.unlink()
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+
 # ==== INIT ROUTE ====
 
 @api_router.get("/")
