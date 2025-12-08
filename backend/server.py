@@ -265,24 +265,52 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 # ==== AUTHENTICATION ROUTES ====
 
 @api_router.post("/auth/register", response_model=Token)
-async def register(user_input: UserCreate):
-    # Check if user exists
-    existing_user = await db.users.find_one({"email": user_input.email}, {"_id": 0})
+@limiter.limit("5/minute")
+async def register(request: Request, user_input: UserCreate):
+    """Register a new user with rate limiting and input sanitization"""
+    
+    # Sanitize inputs
+    try:
+        sanitized_email = sanitize_email(user_input.email)
+        sanitized_name = sanitize_name(user_input.name)
+        
+        # Validate role
+        if user_input.role not in ['teacher', 'student']:
+            raise HTTPException(status_code=400, detail="Invalid role. Must be 'teacher' or 'student'")
+        
+        # Sanitize optional parent contact
+        parent_contact = sanitize_string(user_input.parent_contact) if user_input.parent_contact else None
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    # Check if user exists - using sanitized query
+    existing_user = await db.users.find_one(
+        sanitize_mongo_query({"email": sanitized_email}), 
+        {"_id": 0}
+    )
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create user
+    # Create user with sanitized data
     user = User(
-        email=user_input.email,
+        email=sanitized_email,
         password_hash=get_password_hash(user_input.password),
-        name=user_input.name,
+        name=sanitized_name,
         role=user_input.role,
-        parent_contact=user_input.parent_contact
+        parent_contact=parent_contact
     )
     
     doc = user.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.users.insert_one(doc)
+    
+    # Log security event
+    log_security_event('user_registration', {
+        'user_id': user.id,
+        'email': sanitized_email,
+        'role': user_input.role
+    })
     
     # Create token
     access_token = create_access_token(data={"sub": user.id, "role": user.role})
