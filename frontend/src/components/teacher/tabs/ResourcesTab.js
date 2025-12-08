@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, FolderOpen, FileText, ExternalLink } from "lucide-react";
+import { Plus, Trash2, FolderOpen, FileText, ExternalLink, Upload as UploadIcon, Link as LinkIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FileUpload from "../../common/FileUpload";
 
 const ResourcesTab = ({ classId }) => {
   const [resources, setResources] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadMode, setUploadMode] = useState("link");
   const [formData, setFormData] = useState({
     name: "",
     type: "file",
