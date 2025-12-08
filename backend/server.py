@@ -760,7 +760,8 @@ async def get_test(test_id: str, current_user: dict = Depends(get_current_user))
     return test
 
 @api_router.post("/tests/submit", response_model=TestSubmission)
-async def submit_test(submission: TestSubmit, current_user: dict = Depends(get_current_user)):
+@limiter.limit("30/minute")
+async def submit_test(request: Request, submission: TestSubmit, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "teacher":
         # Check if already submitted
         existing = await db.test_submissions.find_one(
