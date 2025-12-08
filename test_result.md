@@ -892,3 +892,333 @@ agent_communication:
       
       Backend is running successfully. Ready for comprehensive testing.
 
+
+
+user_problem_statement: |
+  Add comprehensive Admin Dashboard to LMS project with ability to manage users.
+  Backend: Support admin role, create get_admin_user dependency, auto-create admin@edify.com account,
+  add database indexes for role and name, create 4 admin endpoints (GET users, PUT user, POST reset-password, DELETE user).
+  Frontend: Create AdminDashboard with user management table, search & filter, edit user modal, password reset dialog, delete confirmation.
+
+backend:
+  - task: "Update User model to support admin role"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Updated register endpoint to accept 'admin' role in addition to 'teacher' and 'student'.
+          Role validation now allows: 'teacher', 'student', or 'admin'.
+
+  - task: "Create get_admin_user dependency"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Created get_admin_user dependency that checks if current_user role is 'admin'.
+          Returns 403 Forbidden if user is not admin.
+          Used to protect all admin-only endpoints.
+
+  - task: "Auto-create admin user on startup"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py (startup_db function)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Added auto-creation of admin user in startup_db event:
+          - Email: admin@edify.com
+          - Password: admin123 (hashed using threadpool)
+          - Role: admin
+          - Name: System Admin
+          Only creates if admin doesn't already exist.
+
+  - task: "Add database indexes for role and name"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py (startup_db function)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Added two new indexes to users collection:
+          - Index on 'role' field for faster role-based queries
+          - Index on 'name' field for faster name-based searches
+          Indexes created during app startup.
+
+  - task: "GET /api/admin/users endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Created GET /api/admin/users endpoint with:
+          - Optional 'role' query parameter for filtering by role
+          - Optional 'search' query parameter for searching by name or email (case-insensitive regex)
+          - Protected by get_admin_user dependency
+          - Excludes password_hash from response
+          - Returns list of users matching filters
+
+  - task: "PUT /api/admin/users/{user_id} endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Created PUT /api/admin/users/{user_id} endpoint with:
+          - Updates name, email, and/or role
+          - Validates user_id format
+          - Sanitizes all inputs (name, email)
+          - Checks for email uniqueness
+          - Validates role is one of: teacher, student, admin
+          - Protected by get_admin_user dependency
+          - Logs security event for audit trail
+          - Returns updated user (without password_hash)
+
+  - task: "POST /api/admin/users/{user_id}/reset-password endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Created POST /api/admin/users/{user_id}/reset-password endpoint with:
+          - Accepts JSON body with 'new_password' field
+          - Validates user_id format
+          - Validates password length (minimum 6 characters)
+          - Hashes password using threadpool (non-blocking)
+          - Protected by get_admin_user dependency
+          - Logs security event for audit trail
+          - Returns success message
+
+  - task: "DELETE /api/admin/users/{user_id} endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Created DELETE /api/admin/users/{user_id} endpoint with:
+          - Validates user_id format
+          - Prevents admin from deleting themselves
+          - Cascading delete for teachers: deletes all their classes and related data (enrollments, homework, notices, resources, tests, test_submissions)
+          - Cascading delete for students: deletes enrollments and test submissions
+          - Protected by get_admin_user dependency
+          - Logs security event for audit trail
+          - Returns success message
+
+frontend:
+  - task: "Create AdminDashboard component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Created comprehensive AdminDashboard component with:
+          - Header with title and logout button
+          - User management section with data table
+          - Real-time search by name or email
+          - Role filter dropdown (All, Student, Teacher, Admin)
+          - Color-coded role badges
+          - Action buttons for each user (Edit, Reset Password, Delete)
+
+  - task: "Edit user modal"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Implemented edit user modal with:
+          - Form fields for name, email, and role
+          - Pre-populated with current user data
+          - Input validation
+          - Cancel and Save Changes buttons
+          - Toast notifications for success/error
+          - Refreshes user list after successful update
+
+  - task: "Password reset dialog"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Implemented password reset dialog with:
+          - Shows user name being updated
+          - Text input for new password
+          - Minimum 6 characters validation
+          - Cancel and Reset Password buttons
+          - Toast notifications for success/error
+          - Clears password field after successful reset
+
+  - task: "Delete confirmation dialog"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Implemented delete confirmation dialog with:
+          - Shows user name and email to be deleted
+          - Warning message for teacher deletion (cascading delete warning)
+          - Cancel and Delete User buttons
+          - Toast notifications for success/error
+          - Refreshes user list after successful deletion
+
+  - task: "Add admin route to App.js"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Added admin route to App.js:
+          - Imported AdminDashboard component
+          - Added protected route for /admin/* path
+          - Route requires admin role via ProtectedRoute component
+
+  - task: "Update LoginPage for admin redirection"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/LoginPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Updated LoginPage to handle admin role:
+          - Added condition to check for admin role after login
+          - Redirects to /admin for admin users
+          - Maintains existing redirects for teacher and student roles
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "GET /api/admin/users endpoint"
+    - "PUT /api/admin/users/{user_id} endpoint"
+    - "POST /api/admin/users/{user_id}/reset-password endpoint"
+    - "DELETE /api/admin/users/{user_id} endpoint"
+    - "Auto-create admin user on startup"
+    - "AdminDashboard component"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      ADMIN DASHBOARD IMPLEMENTATION COMPLETED ✅
+      
+      Successfully implemented comprehensive admin dashboard with all requested features:
+      
+      BACKEND CHANGES:
+      1. Updated User model to support 'admin' role
+      2. Created get_admin_user dependency for admin-only route protection
+      3. Auto-create admin user on startup:
+         - Email: admin@edify.com
+         - Password: admin123
+         - Role: admin
+         - Name: System Admin
+      4. Added database indexes for 'role' and 'name' fields
+      5. Created 4 admin endpoints:
+         - GET /api/admin/users (with search and role filter)
+         - PUT /api/admin/users/{user_id} (update name, email, role)
+         - POST /api/admin/users/{user_id}/reset-password (reset password)
+         - DELETE /api/admin/users/{user_id} (with cascading deletes)
+      
+      FRONTEND CHANGES:
+      1. Created AdminDashboard component with:
+         - User management table
+         - Search by name/email
+         - Filter by role (Student/Teacher/Admin)
+         - Color-coded role badges
+      2. Implemented edit user modal (update name, email, role)
+      3. Implemented password reset dialog
+      4. Implemented delete confirmation dialog with cascading delete warning
+      5. Added admin route to App.js (/admin/*)
+      6. Updated LoginPage to redirect admin users to /admin
+      
+      SECURITY FEATURES:
+      - All admin endpoints protected by get_admin_user dependency
+      - Input sanitization using existing security_utils
+      - Password hashing in threadpool (non-blocking)
+      - Admin cannot delete themselves
+      - Security event logging for all admin actions
+      - Cascading deletes for teachers (classes and related data)
+      - Cascading deletes for students (enrollments and submissions)
+      
+      TESTING NEEDED:
+      1. Login as admin (admin@edify.com / admin123)
+      2. Test user listing with search and filter
+      3. Test editing user (name, email, role)
+      4. Test password reset functionality
+      5. Test user deletion with cascading deletes
+      6. Verify admin access protection (403 for non-admins)
+      
+      Backend is running. Frontend has hot reload enabled.
+      Ready for comprehensive backend testing.
