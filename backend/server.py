@@ -348,7 +348,18 @@ async def login(request: Request, user_input: UserLogin):
         {"_id": 0}
     )
     
-    if not user or not verify_password(user_input.password, user["password_hash"]):
+    if not user:
+        # Log failed login attempt
+        log_security_event('failed_login', {
+            'email': sanitized_email,
+            'ip': get_remote_address(request)
+        })
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Verify password in threadpool to avoid blocking the event loop
+    password_valid = await run_in_threadpool(verify_password, user_input.password, user["password_hash"])
+    
+    if not password_valid:
         # Log failed login attempt
         log_security_event('failed_login', {
             'email': sanitized_email,
