@@ -904,5 +904,8 @@ async def startup_db():
         await db.users.insert_one(doc)
         logger.info("Default teacher account created: edify@gmail.com / edify123")
 
+# Create uploads directory before mounting
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
