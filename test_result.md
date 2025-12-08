@@ -525,3 +525,223 @@ agent_communication:
       
       ALL BACKEND APIs WORKING CORRECTLY - NO ISSUES FOUND
       Complete test flow verified: login → create test → take test → submit → view results → view all results
+
+
+user_problem_statement: |
+  Implement comprehensive security enhancements:
+  1. Rate limiting on API endpoints to prevent abuse
+  2. Input sanitization and NoSQL injection protection
+  3. Enhanced file upload security with MIME type validation and virus scanning
+
+backend:
+  - task: "Rate Limiting Implementation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Implemented rate limiting using slowapi library:
+          - Authentication endpoints (login, register): 5 requests/minute
+          - File upload endpoint: 10 requests/minute
+          - General content creation (classes, homework, tests, etc): 30 requests/minute
+          - IP-based rate limiting
+          - Returns 429 status code when limits exceeded
+          
+  - task: "Input Sanitization & NoSQL Injection Protection"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/security_utils.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Created comprehensive security_utils.py module with:
+          - sanitize_string(): Removes HTML tags, limits length
+          - sanitize_email(): Validates and normalizes emails
+          - sanitize_name(): Allows only safe characters in names
+          - sanitize_url(): Validates and normalizes URLs
+          - sanitize_mongo_query(): Protects against NoSQL injection
+          - validate_object_id(): Validates UUID format
+          - sanitize_test_questions(): Special handling for test content
+          
+          Applied to all user-facing endpoints:
+          - Registration and login
+          - Class, homework, notice, resource creation
+          - Test creation with question parsing
+          - All database queries sanitized
+          
+  - task: "MIME Type Validation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/file_security.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Implemented advanced file validation using python-magic:
+          - Detects actual file type from magic bytes, not just extension
+          - Validates MIME type against whitelist
+          - Cross-verifies MIME type matches file extension
+          - Blocks dangerous MIME types (executables, scripts)
+          - Prevents double-extension attacks (e.g., file.pdf.exe)
+          
+          Allowed MIME types:
+          - Documents: PDF, DOC, DOCX, TXT, PPT, PPTX, XLS, XLSX
+          - Images: JPEG, PNG, GIF, WebP
+          - Archives: ZIP
+          
+  - task: "Virus Scanning with ClamAV"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/file_security.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Integrated ClamAV for virus scanning:
+          - Checks if ClamAV daemon is available
+          - Scans all uploaded files
+          - Immediately deletes infected files
+          - Graceful fallback if ClamAV unavailable
+          - Comprehensive logging of scan results
+          
+          ClamAV installed but may not be running in container.
+          System gracefully handles ClamAV unavailability.
+          
+  - task: "File Upload Security Pipeline"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Updated /api/upload endpoint with comprehensive validation:
+          1. Filename sanitization
+          2. Extension validation (whitelist)
+          3. Size validation (5MB max)
+          4. MIME type validation
+          5. Virus scanning
+          6. UUID-based unique naming
+          7. Security event logging
+          
+          Returns security validation status in response.
+          
+  - task: "Security Event Logging"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/file_security.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Implemented comprehensive security logging:
+          - User registration and login events
+          - Failed login attempts (with IP)
+          - File upload attempts with validation results
+          - Dangerous file upload attempts (blocked)
+          - Virus detection events
+          - NoSQL injection attempts
+          
+          All security events logged for audit trail.
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Rate Limiting Implementation"
+    - "Input Sanitization & NoSQL Injection Protection"
+    - "MIME Type Validation"
+    - "Virus Scanning with ClamAV"
+    - "File Upload Security Pipeline"
+    - "Security Event Logging"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      SECURITY ENHANCEMENTS COMPLETED ✅
+      
+      Implemented comprehensive security features:
+      
+      1. RATE LIMITING:
+         - slowapi integration with IP-based limiting
+         - Auth endpoints: 5 req/min
+         - Upload endpoint: 10 req/min
+         - Content creation: 30 req/min
+      
+      2. INPUT SANITIZATION & NoSQL INJECTION PROTECTION:
+         - Created security_utils.py with sanitization functions
+         - HTML tag removal using bleach
+         - Email, name, URL, and general string sanitization
+         - MongoDB query sanitization to prevent injection
+         - UUID validation for all IDs
+         - Applied to ALL user-facing endpoints
+      
+      3. FILE UPLOAD SECURITY:
+         - MIME type validation using python-magic
+         - Actual file content verification (not just extension)
+         - MIME type whitelist enforcement
+         - Cross-verification of MIME type vs extension
+         - Prevents double-extension attacks
+      
+      4. VIRUS SCANNING:
+         - ClamAV integration using pyclamd
+         - Real-time file scanning
+         - Automatic infected file deletion
+         - Graceful fallback if ClamAV unavailable
+         - Comprehensive scan logging
+      
+      5. SECURITY LOGGING:
+         - All authentication attempts logged
+         - File upload security events tracked
+         - Failed attempts logged with IP
+         - Complete audit trail
+      
+      DEPENDENCIES INSTALLED:
+      - slowapi==0.1.9 (rate limiting)
+      - bleach==6.2.0 (HTML sanitization)
+      - python-magic==0.4.27 (MIME detection)
+      - pyclamd==0.4.0 (ClamAV integration)
+      - libmagic1 (system library)
+      - clamav, clamav-daemon (system packages)
+      
+      DOCUMENTATION CREATED:
+      - /app/SECURITY_FEATURES.md - Comprehensive security documentation
+      
+      TESTING NEEDED:
+      1. Rate limiting: Try multiple rapid requests to auth endpoints
+      2. Input sanitization: Try XSS payloads in various fields
+      3. NoSQL injection: Try MongoDB operator injection
+      4. MIME validation: Upload .exe renamed to .pdf
+      5. File upload: Upload various file types
+      6. Virus scanning: Test if ClamAV is working (optional)
+      7. Security logging: Verify events are logged
+      
+      Backend is running successfully. Ready for comprehensive security testing.
