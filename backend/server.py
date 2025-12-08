@@ -859,14 +859,36 @@ async def get_my_test_results(current_user: dict = Depends(get_current_user)):
 # ==== FILE UPLOAD ROUTE ====
 
 @api_router.post("/upload")
-async def upload_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
-    """Upload a file (max 5MB) for resources or homework"""
+@limiter.limit("10/minute")
+async def upload_file(
+    request: Request,
+    file: UploadFile = File(...), 
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Upload a file with comprehensive security validation:
+    - Rate limiting (10 uploads per minute)
+    - Extension validation
+    - MIME type verification
+    - Virus scanning (ClamAV)
+    - Size validation (5MB max)
+    """
+    
+    # Sanitize filename
+    sanitized_filename = sanitize_string(file.filename, max_length=255)
+    if not sanitized_filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
     
     # Check file extension
-    file_ext = Path(file.filename).suffix.lower()
+    file_ext = Path(sanitized_filename).suffix.lower()
     
     # Security check - reject dangerous files
     if file_ext in DANGEROUS_EXTENSIONS:
+        log_security_event('dangerous_file_upload_attempt', {
+            'user_id': current_user['id'],
+            'filename': sanitized_filename,
+            'extension': file_ext
+        })
         raise HTTPException(
             status_code=400, 
             detail=f"File type '{file_ext}' is not allowed for security reasons"
@@ -907,23 +929,51 @@ async def upload_file(file: UploadFile = File(...), current_user: dict = Depends
     unique_filename = f"{uuid.uuid4()}{file_ext}"
     file_path = UPLOAD_DIR / unique_filename
     
-    # Save file
+    # Save file temporarily for validation
     try:
         with open(file_path, "wb") as f:
             for chunk in temp_content:
                 f.write(chunk)
         
+        # Perform comprehensive security validation
+        # This includes MIME type validation and virus scanning
+        validation_results = await validate_uploaded_file(
+            file=file,
+            temp_path=file_path,
+            allowed_extensions=ALLOWED_EXTENSIONS,
+            max_size=MAX_FILE_SIZE
+        )
+        
+        # Log successful upload
+        log_security_event('file_upload_success', {
+            'user_id': current_user['id'],
+            'filename': sanitized_filename,
+            'unique_filename': unique_filename,
+            'size': file_size,
+            'mime_type': validation_results.get('mime_type'),
+            'virus_scan_clean': validation_results.get('virus_scan_clean')
+        })
+        
         logger.info(f"File uploaded: {unique_filename} by user {current_user['id']}")
         
         return {
             "url": f"/uploads/{unique_filename}",
-            "filename": file.filename,
-            "size": file_size
+            "filename": sanitized_filename,
+            "size": file_size,
+            "security_validated": True,
+            "mime_type": validation_results.get('mime_type')
         }
+        
+    except HTTPException:
+        # Clean up if validation fails
+        if file_path.exists():
+            file_path.unlink()
+        raise
     except Exception as e:
         # Clean up if save fails
         if file_path.exists():
             file_path.unlink()
+        logger.error(f"File upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
 # ==== INIT ROUTE ====
