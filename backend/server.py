@@ -1171,6 +1171,22 @@ async def startup_db():
         doc['created_at'] = doc['created_at'].isoformat()
         await db.users.insert_one(doc)
         logger.info("Default teacher account created: edify@gmail.com / edify123")
+    
+    # Initialize default admin if doesn't exist
+    existing_admin = await db.users.find_one({"email": "admin@edify.com"}, {"_id": 0})
+    if not existing_admin:
+        # Use threadpool for password hashing to avoid blocking
+        password_hash = await run_in_threadpool(get_password_hash, "admin123")
+        admin = User(
+            email="admin@edify.com",
+            password_hash=password_hash,
+            name="System Admin",
+            role="admin"
+        )
+        doc = admin.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        await db.users.insert_one(doc)
+        logger.info("Default admin account created: admin@edify.com / admin123")
 
 # Create uploads directory before mounting
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
