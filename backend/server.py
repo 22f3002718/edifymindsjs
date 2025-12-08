@@ -99,6 +99,10 @@ class Token(BaseModel):
     token_type: str
     user: dict
 
+class PasswordResetRequest(BaseModel):
+    new_password: str
+
+
 class Class(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
