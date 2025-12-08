@@ -103,6 +103,160 @@
 #====================================================================================================
 
 user_problem_statement: |
+  Add file upload functionality to Resources and Homework features. 
+  Users should be able to upload files directly to the server (up to 5MB) as an alternative to Google Drive links.
+  Files should be stored locally in an uploads/ directory with proper security validation.
+
+backend:
+  - task: "File Upload Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Created POST /api/upload endpoint with:
+          - 5MB size limit with chunked validation
+          - Extension whitelist: .pdf, .doc, .docx, .txt, .ppt, .pptx, .xls, .xlsx, .jpg, .jpeg, .png, .gif, .webp, .zip
+          - Dangerous extension blacklist: .exe, .sh, .py, .bat, .cmd, .ps1, .jar, .app
+          - UUID-based unique filenames for security
+          - Returns: {url, filename, size}
+          
+  - task: "Static Files Mounting"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Mounted /uploads directory to serve uploaded files.
+          Created uploads directory on startup to prevent errors.
+          
+  - task: "File Deletion on Resource/Homework Delete"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Updated delete_resource and delete_homework endpoints to:
+          - Check if attachment is uploaded file (starts with /uploads/)
+          - Delete physical file from uploads/ directory
+          - Log deletion success/failure
+
+frontend:
+  - task: "FileUpload Component"
+    implemented: true
+    working: true
+    file: "frontend/src/components/common/FileUpload.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Created reusable FileUpload component with:
+          - Client-side file size validation (5MB limit)
+          - File type validation matching backend
+          - Drag-and-drop style UI with upload progress
+          - Success callback to parent component
+          - Professional purple gradient design matching app theme
+          
+  - task: "ResourcesTab Upload Integration"
+    implemented: true
+    working: true
+    file: "frontend/src/components/teacher/tabs/ResourcesTab.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Updated ResourcesTab with:
+          - Tabs UI: "Upload File" vs "Google Drive Link"
+          - FileUpload component integration
+          - Auto-populate resource name from uploaded filename
+          - Display "Uploaded" badge for uploaded files
+          - Different link text: "Download File" vs "Open in Drive"
+          
+  - task: "HomeworkTab Upload Integration"
+    implemented: true
+    working: true
+    file: "frontend/src/components/teacher/tabs/HomeworkTab.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Updated HomeworkTab with:
+          - Tabs UI: "Upload File" vs "Add Link"
+          - FileUpload component integration for attachments
+          - Display "Uploaded" badge for uploaded attachments
+          - Different link text: "Download Attachment" vs "View Attachment"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "File Upload Endpoint"
+    - "ResourcesTab Upload Integration"
+    - "HomeworkTab Upload Integration"
+    - "File Deletion on Resource/Homework Delete"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      File upload feature implemented successfully. Ready for backend testing.
+      
+      Implementation includes:
+      1. Backend upload endpoint with security validation
+      2. Static file serving at /uploads
+      3. File cleanup on resource/homework deletion
+      4. Professional UI with tabs for upload vs drive link
+      5. Reusable FileUpload component
+      
+      Security measures:
+      - 5MB strict size limit
+      - Extension whitelist (documents, images, archives)
+      - Dangerous extension blacklist
+      - UUID filenames to prevent overwrites
+      
+      Testing needed:
+      1. Upload various file types (PDF, images, docs)
+      2. Try uploading 6MB file (should fail)
+      3. Upload file to Resource, verify it appears
+      4. Upload file to Homework, verify it appears
+      5. Delete resource with uploaded file, verify file is deleted
+      6. Delete homework with uploaded file, verify file is deleted
+      7. Try uploading dangerous file (.exe) - should fail
+      8. Verify Google Drive links still work
+      
+      Additional document created: PRODUCTION_RECOMMENDATIONS.md with comprehensive production readiness analysis and improvement suggestions.
+
+user_problem_statement: |
   Build a test module where a teacher can paste all questions at once into a textbox in a fixed 
   text format (e.g., Q1 + options A/B/C/D + ANSWER: X, there can be different number of options 
   for each question). The system should parse this text and automatically create a question paper. 
