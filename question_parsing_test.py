@@ -5,7 +5,7 @@ Test various question parsing formats
 
 import requests
 
-BASE_URL = "https://fortify-uploads.preview.emergentagent.com/api"
+BASE_URL = "https://non-blocking-auth.preview.emergentagent.com/api"
 TEACHER_EMAIL = "edify@gmail.com"
 TEACHER_PASSWORD = "edify123"
 

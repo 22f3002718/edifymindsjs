@@ -7,7 +7,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://fortify-uploads.preview.emergentagent.com/api"
+BASE_URL = "https://non-blocking-auth.preview.emergentagent.com/api"
 
 # Test credentials
 TEACHER_EMAIL = "edify@gmail.com"
