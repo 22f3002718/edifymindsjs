@@ -269,6 +269,13 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+async def get_admin_user(current_user: dict = Depends(get_current_user)):
+    """Dependency to ensure the current user is an admin"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
 # ==== AUTHENTICATION ROUTES ====
 
 @api_router.post("/auth/register", response_model=Token)
