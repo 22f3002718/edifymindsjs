@@ -19,7 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration
-BASE_URL = "https://non-blocking-auth.preview.emergentagent.com/api"
+BASE_URL = "https://edify-manager.preview.emergentagent.com/api"
 
 # Test credentials - using realistic data as requested
 TEACHER_EMAIL = "teacher@test.com"

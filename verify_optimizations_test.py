@@ -9,7 +9,7 @@ import time
 import concurrent.futures
 from datetime import datetime
 
-BASE_URL = "https://non-blocking-auth.preview.emergentagent.com/api"
+BASE_URL = "https://edify-manager.preview.emergentagent.com/api"
 TEACHER_EMAIL = "edify@gmail.com"
 TEACHER_PASSWORD = "edify123"
 
