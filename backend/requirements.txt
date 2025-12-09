@@ -70,5 +70,5 @@ watchfiles==1.1.1
 slowapi==0.1.9
 limits==5.6.0
 bleach==6.2.0
-python-magic==0.4.27
+python-magic-bin==0.4.14
 pyclamd==0.4.0

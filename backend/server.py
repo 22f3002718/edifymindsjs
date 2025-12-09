@@ -810,7 +810,8 @@ async def create_test(request: Request, test_input: TestCreate, current_user: di
 
 @api_router.get("/classes/{class_id}/tests", response_model=List[Test])
 async def get_class_tests(class_id: str, current_user: dict = Depends(get_current_user)):
-    tests = await db.tests.find({"class_id": class_id}, {"_id": 0}).to_list(1000)
+    # Optimization: Exclude 'questions' field to save bandwidth
+    tests = await db.tests.find({"class_id": class_id}, {"_id": 0, "questions": 0}).to_list(1000)
     
     for test in tests:
         if isinstance(test.get('created_at'), str):
@@ -919,10 +920,18 @@ async def get_test_submissions(test_id: str, current_user: dict = Depends(get_cu
     
     submissions = await db.test_submissions.find({"test_id": test_id}, {"_id": 0}).to_list(1000)
     
-    # Get student details for each submission
+    # Optimization: Batch fetch students to solve N+1 problem
+    student_ids = list(set(sub["student_id"] for sub in submissions))
+    students = await db.users.find(
+        {"id": {"$in": student_ids}}, 
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(None)
+    
+    # Create a lookup map for O(1) access
+    student_map = {s["id"]: s["name"] for s in students}
+    
     for sub in submissions:
-        student = await db.users.find_one({"id": sub["student_id"]}, {"_id": 0, "password_hash": 0})
-        sub["student_name"] = student["name"] if student else "Unknown"
+        sub["student_name"] = student_map.get(sub["student_id"], "Unknown")
         if isinstance(sub.get('submitted_at'), str):
             sub['submitted_at'] = datetime.fromisoformat(sub['submitted_at'])
     
@@ -940,13 +949,35 @@ async def get_my_test_results(current_user: dict = Depends(get_current_user)):
         {"_id": 0}
     ).sort("submitted_at", -1).to_list(1000)
     
-    # Get test details for each submission
+    # Optimization: Batch fetch Tests and Classes to solve N+1 problem
+    
+    # 1. Collect Test IDs
+    test_ids = list(set(sub["test_id"] for sub in submissions))
+    
+    # 2. Batch fetch Tests (exclude heavy 'questions' field)
+    tests = await db.tests.find(
+        {"id": {"$in": test_ids}}, 
+        {"_id": 0, "questions": 0}
+    ).to_list(None)
+    test_map = {t["id"]: t for t in tests}
+    
+    # 3. Collect Class IDs from fetched tests
+    class_ids = list(set(t["class_id"] for t in tests))
+    
+    # 4. Batch fetch Classes
+    classes = await db.classes.find(
+        {"id": {"$in": class_ids}}, 
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(None)
+    class_map = {c["id"]: c for c in classes}
+    
+    # 5. Assemble results in memory
     results = []
     for sub in submissions:
-        test = await db.tests.find_one({"id": sub["test_id"]}, {"_id": 0})
+        test = test_map.get(sub["test_id"])
         if test:
-            # Get class details
-            class_obj = await db.classes.find_one({"id": test["class_id"]}, {"_id": 0})
+            # Get class details from map
+            class_obj = class_map.get(test["class_id"])
             
             if isinstance(sub.get('submitted_at'), str):
                 sub['submitted_at'] = datetime.fromisoformat(sub['submitted_at'])
