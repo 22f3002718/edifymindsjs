@@ -130,7 +130,7 @@ class ResourceCreate(BaseModel):
 
 # Test Models (Need to inspect server.py further for these if they weren't in first 200 lines, 
 # but I saw them in previous outputs. I'll add them here.)
-class Question(BaseModel):
+class TestQuestion(BaseModel):
     question_text: str
     options: List[str]
     correct_answer: str  # "A", "B", "C", or "D"
@@ -144,7 +144,7 @@ class Test(BaseModel):
     description: str
     start_time: str
     duration_minutes: int
-    questions: List[Question]
+    questions: List[TestQuestion]
     created_by: str  # teacher_id
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -154,7 +154,7 @@ class TestCreate(BaseModel):
     description: str
     start_time: str
     duration_minutes: int
-    questions: List[Question]
+    questions: List[TestQuestion]
 
 class Answer(BaseModel):
     question_index: int

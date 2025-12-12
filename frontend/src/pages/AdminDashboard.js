@@ -11,24 +11,50 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-  
+
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", email: "", role: "" });
-  
+
   // Password reset modal state
   const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
-  
+
   // Delete confirmation modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState(null);
 
+  // Add Teacher modal state
+  const [addTeacherModalOpen, setAddTeacherModalOpen] = useState(false);
+  const [newTeacherData, setNewTeacherData] = useState({ name: "", email: "", password: "" });
+
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleAddTeacher = async (e) => {
+    e.preventDefault();
+    if (newTeacherData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/auth/register`, {
+        ...newTeacherData,
+        role: "teacher"
+      });
+      toast.success("Teacher account created successfully");
+      setAddTeacherModalOpen(false);
+      setNewTeacherData({ name: "", email: "", password: "" }); // Reset form
+      fetchUsers();
+    } catch (error) {
+      console.error("Error creating teacher:", error);
+      toast.error(error.response?.data?.detail || "Failed to create teacher");
+    }
+  };
 
   useEffect(() => {
     filterUsers();
@@ -54,21 +80,21 @@ function AdminDashboard() {
 
   const filterUsers = () => {
     let filtered = [...users];
-    
+
     // Apply role filter
     if (roleFilter) {
       filtered = filtered.filter(user => user.role === roleFilter);
     }
-    
+
     // Apply search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(user => 
-        user.name.toLowerCase().includes(search) || 
+      filtered = filtered.filter(user =>
+        user.name.toLowerCase().includes(search) ||
         user.email.toLowerCase().includes(search)
       );
     }
-    
+
     setFilteredUsers(filtered);
   };
 
@@ -112,7 +138,7 @@ function AdminDashboard() {
       toast.error("Password must be at least 6 characters long");
       return;
     }
-    
+
     try {
       await axios.post(`${API}/admin/users/${resetPasswordUser.id}/reset-password`, {
         new_password: newPassword
@@ -160,12 +186,20 @@ function AdminDashboard() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Logout
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setAddTeacherModalOpen(true)}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                + Add Teacher
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -175,7 +209,7 @@ function AdminDashboard() {
         {/* User Management Section */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">User Management</h2>
-          
+
           {/* Search and Filter */}
           <div className="flex gap-4 mb-6">
             <input
@@ -233,11 +267,10 @@ function AdminDashboard() {
                         <div className="text-sm text-gray-500">{user.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' ? 'bg-red-100 text-red-800' :
                           user.role === 'teacher' ? 'bg-blue-100 text-blue-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
+                            'bg-green-100 text-green-800'
+                          }`}>
                           {user.role}
                         </span>
                       </td>
@@ -406,6 +439,70 @@ function AdminDashboard() {
                 Delete User
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Teacher Modal */}
+      {addTeacherModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Add New Teacher</h3>
+            <form onSubmit={handleAddTeacher}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={newTeacherData.name}
+                  onChange={(e) => setNewTeacherData({ ...newTeacherData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={newTeacherData.email}
+                  onChange={(e) => setNewTeacherData({ ...newTeacherData, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={newTeacherData.password}
+                  onChange={(e) => setNewTeacherData({ ...newTeacherData, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                  placeholder="Minimum 6 characters"
+                  minLength={6}
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setAddTeacherModalOpen(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Create Teacher
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
